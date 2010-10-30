@@ -1,0 +1,118 @@
+require 'metadata_generator'
+
+# @private
+class Object
+
+  # Creates a deep copy of this object.
+  #
+  # @raise [TypeError] If the object cannot be deep-copied. All objects that can
+  # be marshalled can be deep-copied.
+
+  def deep_clone
+    Marshal.load Marshal.dump(self)
+  end
+end
+
+
+# Provides the {ClassMethods#has_metadata} method to subclasses of @ActiveRecord::Base@.
+
+module HasMetadata
+  extend ActiveSupport::Concern
+  
+  # Class methods that are added to your model.
+  
+  module ClassMethods
+
+    # Defines a set of fields whose values exist in the associated {Metadata}
+    # record. Each key in the @fields@ hash is the name of a metadata field, and
+    # the value is a set of options to pass to the @validates@ method. If you do
+    # not want to perform any validation on a field, simply pass @true@ as its
+    # key value.
+    #
+    # In addition to the normal @validates@ keys, you can also include a @:type@
+    # key to restrict values to certain classes.
+    #
+    # @param [Hash<Symbol, Hash>] fields A mapping of field names to their validation options (and/or the @:type@ key).
+    #
+    # @example Three metadata fields, one basic, one validated, and one type-checked.
+    #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
+
+    def has_metadata(fields)
+      belongs_to :metadata, dependent: :destroy
+      accepts_nested_attributes_for :metadata
+      #after_save :save_metadata, if: :metadata_changed?
+      class_inheritable_hash :metadata_fields
+      self.metadata_fields = fields.deep_clone
+
+      #define_method(:save_metadata) { metadata.save! }
+      #define_method(:metadata_changed?) { metadata and metadata.changed? }
+
+      fields.each do |name, options|
+        delegate name, to: :metadata!
+        delegate :"#{name}=", to: :metadata!
+
+        if options.kind_of?(Hash) then
+          type = options.delete(:type)
+          validate do |obj|
+            errors.add(name, :incorrect_type) unless
+              metadata_typecast(obj.send(name), type).kind_of?(type) or
+                ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
+          end if type
+          validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
+        end
+      end
+    end
+  end
+
+  # Instance methods that are added to your model.
+
+  module InstanceMethods
+
+    # @private
+    def metadata_typecast(value, type)
+      if value.kind_of?(String) then
+        if type == Integer or type == Fixnum then return value.to_i
+        elsif type == Float then return value.to_f end
+      end
+      return value
+    end
+
+    # @private
+    def assign_multiparameter_attributes(pairs)
+      fake_attributes = pairs.select { |(field, _)| self.class.metadata_fields.include? field[0, field.index('(')].to_sym }
+
+      fake_attributes.group_by { |(field, _)| field[0, field.index('(')] }.each do |field_name, parts|
+        options = self.class.metadata_fields[field_name.to_sym]
+        if options[:type] then
+          args = parts.each_with_object([]) do |(part_name, value), ary|
+            part_ann = part_name[part_name.index('(') + 1, part_name.length]
+            index = part_ann.to_i - 1
+            raise "Out-of-bounds multiparameter argument index" unless index >= 0
+            ary[index] = if value.blank? then nil
+              elsif part_ann.ends_with?('i)') then value.to_i
+              elsif part_ann.ends_with?('f)') then value.to_f
+              else value end
+          end
+          args.compact!
+          send :"#{field_name}=", options[:type].new(*args) unless args.empty?
+        else
+          raise "#{field_name} has no type and cannot be used for multiparameter assignment"
+        end
+      end
+
+      super(pairs - fake_attributes)
+    end
+
+    # @return [Metadata] An existing associated {Metadata} instance, or new, saved one if none was found.
+
+    def metadata!
+      if instance_variables.include?(:@metadata) then
+        metadata.set_fields self.class.metadata_fields
+      else
+        Metadata.transaction do
+          (metadata || create_metadata).set_fields self.class.metadata_fields
+        end
+      end
+    end
+  end
+end
