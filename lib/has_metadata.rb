@@ -6,7 +6,7 @@ class Object
   # Creates a deep copy of this object.
   #
   # @raise [TypeError] If the object cannot be deep-copied. All objects that can
-  # be marshalled can be deep-copied.
+  #   be marshalled can be deep-copied.
 
   def deep_clone
     Marshal.load Marshal.dump(self)
@@ -32,7 +32,8 @@ module HasMetadata
     # In addition to the normal @validates@ keys, you can also include a @:type@
     # key to restrict values to certain classes.
     #
-    # @param [Hash<Symbol, Hash>] fields A mapping of field names to their validation options (and/or the @:type@ key).
+    # @param [Hash<Symbol, Hash>] fields A mapping of field names to their
+    #   validation options (and/or the @:type@ key).
     #
     # @example Three metadata fields, one basic, one validated, and one type-checked.
     #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
@@ -103,7 +104,8 @@ module HasMetadata
       super(pairs - fake_attributes)
     end
 
-    # @return [Metadata] An existing associated {Metadata} instance, or new, saved one if none was found.
+    # @return [Metadata] An existing associated {Metadata} instance, or new,
+    #   saved one if none was found.
 
     def metadata!
       if instance_variables.include?(:@metadata) then

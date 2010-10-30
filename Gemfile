@@ -11,4 +11,3 @@ gem 'sqlite3'
 
 # TEST
 gem 'rspec'
-
