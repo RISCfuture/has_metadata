@@ -1,4 +1,4 @@
-class CreateMetadatas < ActiveRecord::Migration
+class CreateMetadata < ActiveRecord::Migration
   def self.up
     create_table :metadata do |t|
       t.text :data, null: false
