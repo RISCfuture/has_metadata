@@ -1,7 +1,7 @@
 h1. has_metadata -- Keep your tables narrow
 
 | *Author* | Tim Morgan |
-| *Version* | 1.0 (Oct 29, 2010) |
+| *Version* | 1.1 (Nov 16, 2010) |
 | *License* | Released under the MIT License. |
 
 h2. Important note for those upgrading from 1.0 to 1.1
