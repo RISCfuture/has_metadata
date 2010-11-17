@@ -14,7 +14,8 @@ module SpecSupport
       can_be_nil: { type: Date, allow_nil: true },
       can_be_blank: { type: Date, allow_blank: true },
       number: { numericality: true },
-      multiparam: { type: SpecSupport::ConstructorTester }
+      multiparam: { type: SpecSupport::ConstructorTester },
+      has_default: { default: 'default' }
     })
   end
 end
@@ -52,6 +53,15 @@ describe HasMetadata do
         @object.stub!(:instance_variables).and_return(ivars)
 
         @object.untyped.should be_nil
+      end
+      
+      it "should return a default if one is specified" do
+        @object.has_default.should eql('default')
+      end
+      
+      it "should return nil if nil is stored and the default is not nil" do
+        @metadata.data[:has_default] = nil
+        @object.has_default.should eql(nil)
       end
     end
     

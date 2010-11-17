@@ -30,7 +30,9 @@ module HasMetadata
     # key value.
     #
     # In addition to the normal @validates@ keys, you can also include a @:type@
-    # key to restrict values to certain classes.
+    # key to restrict values to certain classes, or a @:default@ key to specify
+    # a value to return for the getter should none be set (normal default is
+    # @nil@).
     #
     # @param [Hash<Symbol, Hash>] fields A mapping of field names to their
     #   validation options (and/or the @:type@ key).
@@ -49,17 +51,23 @@ module HasMetadata
       #define_method(:metadata_changed?) { metadata and metadata.changed? }
 
       fields.each do |name, options|
-        delegate name, to: :metadata!
         delegate :"#{name}=", to: :metadata!
-
+        
         if options.kind_of?(Hash) then
-          type = options.delete(:type)
-          validate do |obj|
-            errors.add(name, :incorrect_type) unless
-              metadata_typecast(obj.send(name), type).kind_of?(type) or
-                ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
-          end if type
-          validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
+          default = options.delete(:default)
+          define_method(name) { metadata!.send(name, default) }
+          
+          unless options.empty?
+            type = options.delete(:type)
+            validate do |obj|
+              errors.add(name, :incorrect_type) unless
+                metadata_typecast(obj.send(name), type).kind_of?(type) or
+                  ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
+            end if type
+            validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
+          end
+        else
+          delegate name, to: :metadata!
         end
       end
     end
