@@ -1,4 +1,3 @@
-Bundler.require :default, :test
 require 'active_support'
 require 'active_record'
 

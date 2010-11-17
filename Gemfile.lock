@@ -94,3 +94,6 @@ DEPENDENCIES
   rspec
   sqlite3
   yard
+
+METADATA
+  version: 1.0.6
