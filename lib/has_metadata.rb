@@ -1,4 +1,5 @@
-require 'metadata_generator'
+require 'has_metadata/metadata_generator'
+require 'has_metadata/model'
 
 # @private
 class Object

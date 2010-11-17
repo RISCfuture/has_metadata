@@ -4,6 +4,27 @@ h1. has_metadata -- Keep your tables narrow
 | *Version* | 1.0 (Oct 29, 2010) |
 | *License* | Released under the MIT License. |
 
+h2. Important note for those upgrading from 1.0 to 1.1
+
+You must re-run the @rails generate metadata@ task to update your @Metadata@
+model. When finished, your @app/models/metadata.rb@ file should look like:
+
+<pre><code>
+# Stores information about a model that doesn't need to be in that model's
+# table. Each row in the @metadata@ table stores a schemaless, serialized hash
+# of data associated with a model instance. Any model can have an associated row
+# in the @metadata@ table by using the {HasMetadata} module.
+#
+# h2. Properties
+#
+# | @data@ | A hash of this metadata's contents (YAML serialized in the database). |
+
+class Metadata &lt; HasMetadata::Model
+end
+</code></pre>
+
+Note that this is significantly emptier than the previous model.
+
 h2. About
 
 Wide tables are a problem for big databases. If your @ActiveRecord@ models have

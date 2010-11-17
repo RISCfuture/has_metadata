@@ -6,7 +6,7 @@ require 'rails/generators/migration'
 class MetadataGenerator < Rails::Generators::Base
   include Rails::Generators::Migration
   
-  source_root "#{File.dirname __FILE__}/../templates"
+  source_root "#{File.dirname __FILE__}/../../templates"
   
   def self.next_migration_number(dirname)
     if ActiveRecord::Base.timestamped_migrations then
