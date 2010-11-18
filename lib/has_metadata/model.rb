@@ -16,12 +16,52 @@ module HasMetadata
 
     # @private
     def set_fields(fields)
-      return self if @fields_set
-      @fields_set = true
-
-      fields.each do |name, _|
-        singleton_class.send(:define_method, name) { |default=nil| data.include?(name) ? data[name] : default }
-        singleton_class.send(:define_method, :"#{name}=") { |value| data[name] = value }
+      return self if @_fields_set
+      @_fields_set = true
+      
+      singleton_class.send(:define_method, :attribute_method?) do |name|
+        name = name.to_sym
+        super(name) or fields.include?(name)
+      end
+      
+      # override attribute prefix/suffix methods to get full first-class
+      # property functionality
+      
+      singleton_class.send(:define_method, :attribute) do |name|
+        name = name.to_sym
+        super(name) unless fields.include?(name)
+        
+        default = (fields[name].kind_of?(Hash) and fields[name][:default]) ? fields[name][:default] : nil
+        data.include?(name) ? data[name] : default
+      end
+      
+      singleton_class.send(:define_method, :query_attribute) do |name|
+        name = name.to_sym
+        super(name) unless fields.include?(name)
+        
+        if fields[name].kind_of?(Hash) and fields[name].include?(:type) then
+          if fields[name][:type].ancestors.include?(Numeric) then
+            not send(name).zero?
+          else
+            not send(name).blank?
+          end
+        else
+          not send(name).blank?
+        end
+      end
+      
+      singleton_class.send(:define_method, :attribute_before_type_cast) do |name|
+        name = name.to_sym
+        super(name) unless fields.include?(name)
+        
+        fields[name]
+      end
+      
+      singleton_class.send(:define_method, :attribute=) do |name, value|
+        name = name.to_sym
+        super(name, value) unless fields.include?(name)
+        
+        data[name] = value
       end
 
       self

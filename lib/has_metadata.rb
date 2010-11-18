@@ -52,23 +52,21 @@ module HasMetadata
       #define_method(:metadata_changed?) { metadata and metadata.changed? }
 
       fields.each do |name, options|
-        delegate :"#{name}=", to: :metadata!
+        # delegate all attribute methods to the metadata
+        attribute_method_matchers.each do |matcher|
+          delegate :"#{matcher.prefix}#{name}#{matcher.suffix}", to: :metadata!
+        end
         
         if options.kind_of?(Hash) then
-          default = options.delete(:default)
-          define_method(name) { metadata!.send(name, default) }
+          type = options.delete(:type)
+          options.delete :default
           
-          unless options.empty?
-            type = options.delete(:type)
-            validate do |obj|
-              errors.add(name, :incorrect_type) unless
-                metadata_typecast(obj.send(name), type).kind_of?(type) or
-                  ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
-            end if type
-            validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
-          end
-        else
-          delegate name, to: :metadata!
+          validate do |obj|
+            errors.add(name, :incorrect_type) unless
+              metadata_typecast(obj.send(name), type).kind_of?(type) or
+                ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
+          end if type
+          validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
         end
       end
     end
