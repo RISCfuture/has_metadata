@@ -53,9 +53,7 @@ module HasMetadata
 
       fields.each do |name, options|
         # delegate all attribute methods to the metadata
-        attribute_method_matchers.each do |matcher|
-          delegate :"#{matcher.prefix}#{name}#{matcher.suffix}", to: :metadata!
-        end
+        attribute_method_matchers.each { |matcher| delegate matcher.method_name(name), to: :metadata! }
         
         if options.kind_of?(Hash) then
           type = options.delete(:type)
