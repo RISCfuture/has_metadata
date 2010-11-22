@@ -31,9 +31,10 @@ module HasMetadata
         name = name.to_sym
         super(name) unless fields.include?(name)
         
-        default = (fields[name].kind_of?(Hash) and fields[name][:default]) ? fields[name][:default] : nil
+        default = (fields[name].kind_of?(Hash) && fields[name][:default]) ? fields[name][:default] : nil
         data.include?(name) ? data[name] : default
       end
+      singleton_class.send :alias_method, :attribute_before_type_cast, :attribute
       
       singleton_class.send(:define_method, :query_attribute) do |name|
         name = name.to_sym
@@ -48,13 +49,6 @@ module HasMetadata
         else
           not send(name).blank?
         end
-      end
-      
-      singleton_class.send(:define_method, :attribute_before_type_cast) do |name|
-        name = name.to_sym
-        super(name) unless fields.include?(name)
-        
-        fields[name]
       end
       
       singleton_class.send(:define_method, :attribute=) do |name, value|

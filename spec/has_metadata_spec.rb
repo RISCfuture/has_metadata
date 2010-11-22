@@ -13,7 +13,7 @@ module SpecSupport
       untyped: {},
       can_be_nil: { type: Date, allow_nil: true },
       can_be_blank: { type: Date, allow_blank: true },
-      number: { numericality: true },
+      number: { type: Fixnum, numericality: true },
       multiparam: { type: SpecSupport::ConstructorTester },
       has_default: { default: 'default' }
     })
@@ -30,45 +30,43 @@ describe HasMetadata do
       SpecSupport::HasMetadataTester.nested_attributes_options[:metadata].should_not be_nil
     end
     
-    it "should make a getter for each field" do
-      SpecSupport::HasMetadataTester.new.should respond_to(:untyped)
-      SpecSupport::HasMetadataTester.new.should respond_to(:multiparam)
-      SpecSupport::HasMetadataTester.new.should respond_to(:number)
-    end
-
-    context "getters" do
-      before :each do
-        @object = SpecSupport::HasMetadataTester.new
-        @metadata = @object.metadata!
-      end
-
-      it "should return a field in the metadata object" do
-        @metadata.data[:untyped] = 'bar'
-        @object.untyped.should eql('bar')
-      end
-
-      it "should return nil if there is no associated metadata" do
-        @object.stub!(:metadata).and_return(nil)
-        ivars = @object.instance_variables - [ :@metadata ]
-        @object.stub!(:instance_variables).and_return(ivars)
-
-        @object.untyped.should be_nil
-      end
-      
-      it "should return a default if one is specified" do
-        @object.has_default.should eql('default')
-      end
-      
-      it "should return nil if nil is stored and the default is not nil" do
-        @metadata.data[:has_default] = nil
-        @object.has_default.should eql(nil)
+    it "should define methods for each field" do
+      [ :attribute, :attribute_before_type_cast, :attribute= ].each do |meth|
+        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'untyped'))
+        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'multiparam'))
+        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'number'))
       end
     end
-    
-    it "should make a setter for each field" do
-      SpecSupport::HasMetadataTester.new.should respond_to(:untyped=)
-      SpecSupport::HasMetadataTester.new.should respond_to(:multiparam=)
-      SpecSupport::HasMetadataTester.new.should respond_to(:number=)
+
+    [ :attribute, :attribute_before_type_cast ].each do |getter|
+      describe "##{getter}" do
+        before :each do
+          @object = SpecSupport::HasMetadataTester.new
+          @metadata = @object.metadata!
+        end
+
+        it "should return a field in the metadata object" do
+          @metadata.data[:untyped] = 'bar'
+          @object.send(getter.to_s.sub('attribute', 'untyped')).should eql('bar')
+        end
+
+        it "should return nil if there is no associated metadata" do
+          @object.stub!(:metadata).and_return(nil)
+          ivars = @object.instance_variables - [ :@metadata ]
+          @object.stub!(:instance_variables).and_return(ivars)
+
+          @object.send(getter.to_s.sub('attribute', 'untyped')).should be_nil
+        end
+      
+        it "should return a default if one is specified" do
+          @object.send(getter.to_s.sub('attribute', 'has_default')).should eql('default')
+        end
+      
+        it "should return nil if nil is stored and the default is not nil" do
+          @metadata.data[:has_default] = nil
+          @object.send(getter.to_s.sub('attribute', 'has_default')).should eql(nil)
+        end
+      end
     end
 
     context "setters" do
@@ -129,6 +127,52 @@ describe HasMetadata do
       it "should typecast multiparameter parts" do
         @object.attributes = { 'multiparam(1i)' => '1982', 'multiparam(2f)' => '10.5' }
         @object.multiparam.args.should eql([ 1982, 10.5 ])
+      end
+    end
+    
+    describe "#attribute?" do
+      before :each do
+        @object = SpecSupport::HasMetadataTester.new
+        @metadata = @object.metadata!
+      end
+
+      context "untyped field" do
+        it "should return true if the string is not blank" do
+          @metadata.data = { untyped: 'foo' }
+          @object.untyped?.should be_true
+        end
+
+        it "should return false if the string is blank" do
+          @metadata.data = { untyped: ' ' }
+          @object.untyped?.should be_false
+
+          @metadata.data = { untyped: '' }
+          @object.untyped?.should be_false
+        end
+      end
+
+      context "numeric field" do
+        it "should return true if the number is not zero" do
+          @metadata.data = { number: 4 }
+          @object.number?.should be_true
+        end
+        
+        it "should return false if the number is zero" do
+          @metadata.data = { number: 0 }
+          @object.number?.should be_false
+        end
+      end
+
+      context "typed, non-numeric field" do
+        it "should return true if the string is not blank" do
+          @metadata.data = { can_be_nil: Date.today }
+          @object.can_be_nil?.should be_true
+        end
+        
+        it "should return false if the string is blank" do
+          @metadata.data = { can_be_nil: nil }
+          @object.can_be_nil?.should be_false
+        end
       end
     end
   end
