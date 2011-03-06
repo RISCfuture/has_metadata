@@ -12,8 +12,12 @@ module SpecSupport
     has_metadata({
       untyped: {},
       can_be_nil: { type: Date, allow_nil: true },
+      can_be_nil_with_default: { type: Date, allow_nil: true, default: Date.today },
       can_be_blank: { type: Date, allow_blank: true },
+      can_be_blank_with_default: { type: Date, allow_blank: true, default: Date.today },
+      cannot_be_nil_with_default: { type: Boolean, allow_nil: false, default: false },
       number: { type: Fixnum, numericality: true },
+      boolean: { type: Boolean },
       multiparam: { type: SpecSupport::ConstructorTester },
       has_default: { default: 'default' }
     })
@@ -69,10 +73,12 @@ describe HasMetadata do
       end
     end
 
-    context "setters" do
+    describe "#attribute=" do
       before :each do
         @object = SpecSupport::HasMetadataTester.new
         @metadata = @object.metadata!
+        @object.boolean = false
+        @object.multiparam = SpecSupport::ConstructorTester.new(1,2,3)
       end
 
       it "should set the value in the metadata object" do
@@ -95,6 +101,20 @@ describe HasMetadata do
         @object.should_not be_valid
         @object.errors[:multiparam].should_not be_empty
       end
+      
+      it "should cast a type if possible" do
+        @object.number = "50"
+        @object.should be_valid
+        @object.number.should eql(50)
+        
+        @object.boolean = "1"
+        @object.should be_valid
+        @object.boolean.should eql(true)
+        
+        @object.boolean = "0"
+        @object.should be_valid
+        @object.boolean.should eql(false)
+      end
 
       it "should not enforce a type if :allow_nil is given" do
         @object.can_be_nil = nil
@@ -106,6 +126,20 @@ describe HasMetadata do
         @object.can_be_blank = ""
         @object.valid? #@object.should be_valid
         @object.errors[:can_be_blank].should be_empty
+      end
+      
+      it "should set to the default if given nil and allow_blank or allow_nil are false" do
+        @object.can_be_nil_with_default = nil
+        @object.can_be_nil_with_default.should be_nil
+        
+        @object.can_be_blank_with_default = nil
+        @object.can_be_blank_with_default.should be_nil
+        
+        @object.cannot_be_nil_with_default.should eql(false)
+        
+        @object.cannot_be_nil_with_default = nil
+        @object.should_not be_valid
+        @object.errors[:cannot_be_nil_with_default].should_not be_empty
       end
 
       it "should enforce other validations as given" do

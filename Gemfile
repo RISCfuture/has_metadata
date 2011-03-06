@@ -1,6 +1,7 @@
 source :rubygems
 
 gem 'rails', '>= 3.0'
+gem 'boolean'
 
 group :development do
   gem 'jeweler'

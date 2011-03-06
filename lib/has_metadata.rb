@@ -20,6 +20,26 @@ end
 module HasMetadata
   extend ActiveSupport::Concern
   
+  # @private
+  def self.metadata_typecast(value, type)
+    if value.kind_of?(String) then
+      if type == Integer or type == Fixnum then
+        begin
+          return Integer(value)
+        rescue ArgumentError
+          return value
+        end
+      elsif type == Float then
+        begin
+          return Float(value)
+        rescue ArgumentError
+          return value
+        end
+      elsif type == Boolean then return value.parse_bool end
+    end
+    return value
+  end
+  
   # Class methods that are added to your model.
   
   module ClassMethods
@@ -60,9 +80,10 @@ module HasMetadata
           options.delete :default
           
           validate do |obj|
+            value = obj.send(name)
             errors.add(name, :incorrect_type) unless
-              metadata_typecast(obj.send(name), type).kind_of?(type) or
-                ((options[:allow_nil] and obj.send(name).nil?) or (options[:allow_blank] and obj.send(name).blank?))
+              HasMetadata.metadata_typecast(value, type).kind_of?(type) or
+                ((options[:allow_nil] and value.nil?) or (options[:allow_blank] and value.blank?))
           end if type
           validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
         end
@@ -73,15 +94,6 @@ module HasMetadata
   # Instance methods that are added to your model.
 
   module InstanceMethods
-
-    # @private
-    def metadata_typecast(value, type)
-      if value.kind_of?(String) then
-        if type == Integer or type == Fixnum then return value.to_i
-        elsif type == Float then return value.to_f end
-      end
-      return value
-    end
 
     # @private
     def assign_multiparameter_attributes(pairs)

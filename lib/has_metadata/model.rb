@@ -30,8 +30,9 @@ module HasMetadata
       singleton_class.send(:define_method, :attribute) do |name|
         name = name.to_sym
         super(name) unless fields.include?(name)
-        
-        default = (fields[name].kind_of?(Hash) && fields[name][:default]) ? fields[name][:default] : nil
+
+        options = fields[name] || {}
+        default = options.include?(:default) ? options[:default] : nil
         data.include?(name) ? data[name] : default
       end
       singleton_class.send :alias_method, :attribute_before_type_cast, :attribute
@@ -39,9 +40,10 @@ module HasMetadata
       singleton_class.send(:define_method, :query_attribute) do |name|
         name = name.to_sym
         super(name) unless fields.include?(name)
-        
-        if fields[name].kind_of?(Hash) and fields[name].include?(:type) then
-          if fields[name][:type].ancestors.include?(Numeric) then
+
+        options = fields[name] || {}
+        if options.include?(:type) then
+          if options[:type].ancestors.include?(Numeric) then
             not send(name).zero?
           else
             not send(name).blank?
@@ -54,8 +56,9 @@ module HasMetadata
       singleton_class.send(:define_method, :attribute=) do |name, value|
         name = name.to_sym
         super(name, value) unless fields.include?(name)
-        
-        data[name] = value
+
+        options = fields[name] || {}
+        data[name] = HasMetadata.metadata_typecast(value, options[:type])
       end
 
       self
@@ -68,7 +71,7 @@ module HasMetadata
     end
 
     def nullify_empty_fields
-      data.each { |key, value| data[key] = nil if data[key].blank? }
+      data.each { |key, value| data[key] = nil if value.blank? }
     end
   end
 end
