@@ -30,7 +30,7 @@ YARD::Rake::YardocTask.new('doc') do |doc|
   doc.options << "--protected"
   doc.options << "-r" << "README.textile"
   doc.options << "-o" << "doc"
-  doc.options << "--title" << "has_metadata Documentation".inspect
+  doc.options << "--title" << "has_metadata Documentation"
   
   doc.files = [ 'lib/**/*', 'README.textile', 'templates/metadata.rb' ]
 end
