@@ -209,5 +209,16 @@ describe HasMetadata do
         end
       end
     end
+    
+    context "[association]" do
+      it "should save the metadata when it is changed" do
+        object = SpecSupport::HasMetadataTester.new
+        object.number = 123
+        object.boolean = true
+        object.multiparam = SpecSupport::ConstructorTester.new(1,2,3)
+        object.metadata.should_receive(:save).once.and_return(true)
+        object.save!
+      end
+    end
   end
 end

@@ -58,6 +58,7 @@ module HasMetadata
         super(name, value) unless fields.include?(name)
 
         options = fields[name] || {}
+        data_will_change!
         data[name] = HasMetadata.metadata_typecast(value, options[:type])
       end
 
