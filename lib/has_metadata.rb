@@ -1,5 +1,6 @@
 require 'has_metadata/metadata_generator'
 require 'has_metadata/model'
+require 'boolean'
 
 # @private
 class Object
