@@ -134,5 +134,10 @@ module HasMetadata
         end
       end
     end
+
+    # @private
+    def inspect
+      "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
+    end
   end
 end
