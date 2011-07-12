@@ -72,7 +72,7 @@ module HasMetadata
     end
 
     def nullify_empty_fields
-      data.each { |key, value| data[key] = nil if value.blank? }
+      data.each { |key, value| data[key] = nil if value == "" }
     end
   end
 end
