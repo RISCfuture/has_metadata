@@ -129,9 +129,7 @@ module HasMetadata
       if instance_variables.include?(:@metadata) then
         metadata.set_fields self.class.metadata_fields
       else
-        Metadata.transaction do
-          (metadata || create_metadata).set_fields self.class.metadata_fields
-        end
+        (metadata || Metadata.transaction { metadata || create_metadata }).set_fields self.class.metadata_fields
       end
     end
 
