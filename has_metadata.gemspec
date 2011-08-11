@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{has_metadata}
-  s.version = "1.2.1"
+  s.version = "1.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Tim Morgan"]
-  s.date = %q{2011-07-16}
+  s.authors = [%q{Tim Morgan}]
+  s.date = %q{2011-08-11}
   s.description = %q{has_metadata lets you move non-indexed and weighty columns off of your big tables by creating a separate metadata table to store all this extra information. Works with Ruby 1.9. and Rails 3.0.}
   s.email = %q{git@timothymorgan.info}
   s.extra_rdoc_files = [
@@ -36,9 +36,9 @@ Gem::Specification.new do |s|
     "templates/metadata.rb"
   ]
   s.homepage = %q{http://github.com/riscfuture/has_metadata}
-  s.require_paths = ["lib"]
+  s.require_paths = [%q{lib}]
   s.required_ruby_version = Gem::Requirement.new(">= 1.9")
-  s.rubygems_version = %q{1.6.2}
+  s.rubygems_version = %q{1.8.7}
   s.summary = %q{Reduce your table width by moving non-indexed columns to a separate metadata table}
 
   if s.respond_to? :specification_version then
