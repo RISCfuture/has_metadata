@@ -66,7 +66,7 @@ module HasMetadata
       belongs_to :metadata, dependent: :destroy
       accepts_nested_attributes_for :metadata
       after_save :save_metadata, if: :metadata_changed?
-      class_inheritable_hash :metadata_fields
+      class_attribute :metadata_fields
       self.metadata_fields = fields.deep_clone
 
       define_method(:save_metadata) { metadata.save! }
