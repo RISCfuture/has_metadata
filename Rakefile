@@ -18,6 +18,7 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/riscfuture/has_metadata"
   gem.authors = [ "Tim Morgan" ]
   gem.required_ruby_version = '>= 1.9'
+  gem.files = %w( lib/**/* templates/**/* has_metadata.gemspec LICENSE README.textile )
 end
 Jeweler::RubygemsDotOrgTasks.new
 
