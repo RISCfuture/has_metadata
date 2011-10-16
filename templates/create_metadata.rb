@@ -1,11 +1,7 @@
 class CreateMetadata < ActiveRecord::Migration
-  def self.up
+  def change
     create_table :metadata do |t|
       t.text :data, null: false
     end
-  end
-
-  def self.down
-    drop_table :metadatas
   end
 end
