@@ -96,6 +96,12 @@ module HasMetadata
 
   module InstanceMethods
 
+    def as_json(options={})
+      options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+      options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
+      super options
+    end
+
     # @private
     def assign_multiparameter_attributes(pairs)
       fake_attributes = pairs.select { |(field, _)| self.class.metadata_fields.include? field[0, field.index('(')].to_sym }

@@ -220,5 +220,94 @@ describe HasMetadata do
         object.save!
       end
     end
+    
+    describe "#as_json" do
+      before :each do
+        @object = SpecSupport::HasMetadataTester.new
+        @object.number = 123
+        @object.boolean = true
+      end
+      
+      it "should include metadata fields" do
+        @object.as_json.should eql("has_metadata_tester"=>{
+          "id"=>nil,
+          :untyped=>nil,
+          :can_be_nil=>nil,
+          :can_be_nil_with_default=>Date.today,
+          :can_be_blank=>nil,
+          :can_be_blank_with_default=>Date.today,
+          :cannot_be_nil_with_default=>false,
+          :number=>123,
+          :boolean=>true,
+          :multiparam=>nil,
+          :has_default=>"default"
+        })
+      end
+      
+      it "should not clobber an existing :except option" do
+        @object.as_json(except: :untyped).should eql("has_metadata_tester"=>{
+          "id"=>nil,
+          :can_be_nil=>nil,
+          :can_be_nil_with_default=>Date.today,
+          :can_be_blank=>nil,
+          :can_be_blank_with_default=>Date.today,
+          :cannot_be_nil_with_default=>false,
+          :number=>123,
+          :boolean=>true,
+          :multiparam=>nil,
+          :has_default=>"default"
+        })
+        
+        @object.as_json(except: [ :untyped, :id ]).should eql("has_metadata_tester"=>{
+          :can_be_nil=>nil,
+          :can_be_nil_with_default=>Date.today,
+          :can_be_blank=>nil,
+          :can_be_blank_with_default=>Date.today,
+          :cannot_be_nil_with_default=>false,
+          :number=>123,
+          :boolean=>true,
+          :multiparam=>nil,
+          :has_default=>"default"
+        })
+      end
+      
+      it "should not clobber an existing :methods option" do
+        class << @object
+          def foo() 1 end
+          def bar() '1' end
+        end
+        
+        @object.as_json(methods: :foo).should eql("has_metadata_tester"=>{
+          "id"=>nil,
+          :untyped=>nil,
+          :can_be_nil=>nil,
+          :can_be_nil_with_default=>Date.today,
+          :can_be_blank=>nil,
+          :can_be_blank_with_default=>Date.today,
+          :cannot_be_nil_with_default=>false,
+          :number=>123,
+          :boolean=>true,
+          :multiparam=>nil,
+          :has_default=>"default",
+          :foo=>1
+        })
+        
+        @object.as_json(methods: [ :foo, :bar ]).should eql("has_metadata_tester"=>{
+          "id"=>nil,
+          :untyped=>nil,
+          :can_be_nil=>nil,
+          :can_be_nil_with_default=>Date.today,
+          :can_be_blank=>nil,
+          :can_be_blank_with_default=>Date.today,
+          :cannot_be_nil_with_default=>false,
+          :number=>123,
+          :boolean=>true,
+          :multiparam=>nil,
+          :has_default=>"default",
+          :foo=>1,
+          :bar=>'1'
+        })
+      end
+    end
   end
 end
