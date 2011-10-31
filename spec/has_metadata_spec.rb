@@ -309,5 +309,109 @@ describe HasMetadata do
         })
       end
     end
+    
+    describe "#to_xml" do
+      before :each do
+        @object = SpecSupport::HasMetadataTester.new
+        @object.number = 123
+        @object.boolean = true
+      end
+      
+      it "should include metadata fields" do
+        @object.to_xml.should eql(<<-XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<has-metadata-tester>
+  <id type="integer" nil="true"></id>
+  <untyped nil="true"></untyped>
+  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
+  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
+  <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
+  <number type="integer">123</number>
+  <boolean type="boolean">true</boolean>
+  <multiparam nil="true"></multiparam>
+  <has-default>default</has-default>
+</has-metadata-tester>
+        XML
+      end
+      
+      it "should not clobber an existing :except option" do
+        @object.to_xml(except: :untyped).should eql(<<-XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<has-metadata-tester>
+  <id type="integer" nil="true"></id>
+  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
+  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
+  <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
+  <number type="integer">123</number>
+  <boolean type="boolean">true</boolean>
+  <multiparam nil="true"></multiparam>
+  <has-default>default</has-default>
+</has-metadata-tester>
+        XML
+        
+        @object.to_xml(except: [ :untyped, :id ]).should eql(<<-XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<has-metadata-tester>
+  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
+  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
+  <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
+  <number type="integer">123</number>
+  <boolean type="boolean">true</boolean>
+  <multiparam nil="true"></multiparam>
+  <has-default>default</has-default>
+</has-metadata-tester>
+        XML
+      end
+      
+      it "should not clobber an existing :methods option" do
+        class << @object
+          def foo() 1 end
+          def bar() '1' end
+        end
+        
+        @object.to_xml(methods: :foo).should eql(<<-XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<has-metadata-tester>
+  <id type="integer" nil="true"></id>
+  <foo type="integer">1</foo>
+  <untyped nil="true"></untyped>
+  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
+  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
+  <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
+  <number type="integer">123</number>
+  <boolean type="boolean">true</boolean>
+  <multiparam nil="true"></multiparam>
+  <has-default>default</has-default>
+</has-metadata-tester>
+        XML
+        
+        @object.to_xml(methods: [ :foo, :bar ]).should eql(<<-XML)
+<?xml version="1.0" encoding="UTF-8"?>
+<has-metadata-tester>
+  <id type="integer" nil="true"></id>
+  <foo type="integer">1</foo>
+  <bar>1</bar>
+  <untyped nil="true"></untyped>
+  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
+  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
+  <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
+  <number type="integer">123</number>
+  <boolean type="boolean">true</boolean>
+  <multiparam nil="true"></multiparam>
+  <has-default>default</has-default>
+</has-metadata-tester>
+        XML
+      end
+    end
   end
 end

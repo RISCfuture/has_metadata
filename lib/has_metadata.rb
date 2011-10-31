@@ -101,6 +101,12 @@ module HasMetadata
       options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
       super options
     end
+    
+    def to_xml(options={})
+      options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+      options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
+      super options
+    end
 
     # @private
     def assign_multiparameter_attributes(pairs)
