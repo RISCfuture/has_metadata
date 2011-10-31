@@ -4,14 +4,14 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{has_metadata}
-  s.version = "1.3.0"
+  s.name = "has_metadata"
+  s.version = "1.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = [%q{Tim Morgan}]
-  s.date = %q{2011-08-31}
-  s.description = %q{has_metadata lets you move non-indexed and weighty columns off of your big tables by creating a separate metadata table to store all this extra information. Works with Ruby 1.9. and Rails 3.0.}
-  s.email = %q{git@timothymorgan.info}
+  s.authors = ["Tim Morgan"]
+  s.date = "2011-10-31"
+  s.description = "has_metadata lets you move non-indexed and weighty columns off of your big tables by creating a separate metadata table to store all this extra information. Works with Ruby 1.9. and Rails 3.0."
+  s.email = "git@timothymorgan.info"
   s.extra_rdoc_files = [
     "LICENSE",
     "README.textile"
@@ -26,11 +26,11 @@ Gem::Specification.new do |s|
     "templates/create_metadata.rb",
     "templates/metadata.rb"
   ]
-  s.homepage = %q{http://github.com/riscfuture/has_metadata}
-  s.require_paths = [%q{lib}]
+  s.homepage = "http://github.com/riscfuture/has_metadata"
+  s.require_paths = ["lib"]
   s.required_ruby_version = Gem::Requirement.new(">= 1.9")
-  s.rubygems_version = %q{1.8.9}
-  s.summary = %q{Reduce your table width by moving non-indexed columns to a separate metadata table}
+  s.rubygems_version = "1.8.11"
+  s.summary = "Reduce your table width by moving non-indexed columns to a separate metadata table"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
