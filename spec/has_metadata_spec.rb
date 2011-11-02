@@ -22,6 +22,10 @@ module SpecSupport
       has_default: { default: 'default' }
     })
   end
+  
+  class HasMetadataSubclass < HasMetadataTester
+    has_metadata(inherited: {})
+  end
 end
 
 describe HasMetadata do
@@ -40,6 +44,22 @@ describe HasMetadata do
         SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'multiparam'))
         SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'number'))
       end
+    end
+    
+    it "should properly handle subclasses" do
+      SpecSupport::HasMetadataTester.metadata_fields.should_not include(:inherited)
+      SpecSupport::HasMetadataSubclass.metadata_fields.should include(:inherited)
+      
+      ->{ SpecSupport::HasMetadataTester.new.inherited = true }.should raise_error(NoMethodError)
+      sc = SpecSupport::HasMetadataSubclass.new
+      sc.inherited = true
+      sc.inherited.should be_true
+      sc.untyped = 'foo'
+      sc.untyped.should eql('foo')
+    end
+    
+    it "should not allow subclasses to redefine metadata fields" do
+      -> { SpecSupport::HasMetadataSubclass.has_metadata(untyped: { presence: true }) }.should raise_error(/untyped/)
     end
 
     [ :attribute, :attribute_before_type_cast ].each do |getter|

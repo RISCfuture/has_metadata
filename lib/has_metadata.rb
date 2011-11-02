@@ -63,14 +63,20 @@ module HasMetadata
     #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
 
     def has_metadata(fields)
-      belongs_to :metadata, dependent: :destroy
-      accepts_nested_attributes_for :metadata
-      after_save :save_metadata, if: :metadata_changed?
-      class_attribute :metadata_fields
-      self.metadata_fields = fields.deep_clone
+      if !respond_to?(:metadata_fields) then
+        belongs_to :metadata, dependent: :destroy
+        accepts_nested_attributes_for :metadata
+        after_save :save_metadata, if: :metadata_changed?
 
-      define_method(:save_metadata) { metadata.save! }
-      define_method(:metadata_changed?) { metadata.try :changed? }
+        class_attribute :metadata_fields
+        self.metadata_fields = fields.deep_clone
+
+        define_method(:save_metadata) { metadata.save! }
+        define_method(:metadata_changed?) { metadata.try :changed? }
+      else
+        raise "Cannot redefine existing metadata fields: #{(fields.keys & self.metadata_fields.keys).to_sentence}" unless (fields.keys & self.metadata_fields.keys).empty?
+        self.metadata_fields = self.metadata_fields.merge(fields)
+      end
 
       fields.each do |name, options|
         # delegate all attribute methods to the metadata
