@@ -11,9 +11,6 @@ module HasMetadata
     after_initialize :initialize_data
     before_save :nullify_empty_fields
 
-    validates :data,
-              presence: true
-
     # @private
     def set_fields(fields)
       return self if @_fields_set
