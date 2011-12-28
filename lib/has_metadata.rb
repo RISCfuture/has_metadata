@@ -103,6 +103,7 @@ module HasMetadata
   module InstanceMethods
 
     def as_json(options={})
+      options ||= Hash.new # the JSON encoder can sometimes give us nil options?
       options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
       options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
       super options
