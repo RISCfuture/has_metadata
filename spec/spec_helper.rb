@@ -19,6 +19,6 @@ RSpec.configure do |config|
     Metadata.connection.execute "DROP TABLE IF EXISTS metadata"
     Metadata.connection.execute "CREATE TABLE metadata (id INTEGER PRIMARY KEY ASC, data TEXT)"
     Metadata.connection.execute "DROP TABLE IF EXISTS users"
-    Metadata.connection.execute "CREATE TABLE users (id INTEGER PRIMARY KEY ASC)"
+    Metadata.connection.execute "CREATE TABLE users (id INTEGER PRIMARY KEY ASC, metadata_id INTEGER)"
   end
 end
