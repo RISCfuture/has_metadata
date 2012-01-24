@@ -143,10 +143,14 @@ module HasMetadata
 
   def metadata!
     if instance_variables.include?(:@metadata) then
-      metadata.set_fields self.class.metadata_fields
+      metadata
     else
-      (metadata || Metadata.transaction { metadata || create_metadata }).set_fields self.class.metadata_fields
-    end
+      if new_record? then
+        metadata || build_metadata
+      else
+        metadata || Metadata.transaction { metadata || create_metadata }
+      end
+    end.set_fields self.class.metadata_fields
   end
 
   # @private
