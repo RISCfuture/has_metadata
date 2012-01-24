@@ -5,7 +5,7 @@ module HasMetadata
   # information.
   
   class Model < ActiveRecord::Base
-    set_table_name 'metadata'
+    self.table_name = 'metadata'
     serialize :data, Hash
 
     after_initialize :initialize_data

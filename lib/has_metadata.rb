@@ -99,63 +99,58 @@ module HasMetadata
     end
   end
 
-  # Instance methods that are added to your model.
+  def as_json(options={})
+    options ||= Hash.new # the JSON encoder can sometimes give us nil options?
+    options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+    options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
+    super options
+  end
+  
+  def to_xml(options={})
+    options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+    options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
+    super options
+  end
 
-  module InstanceMethods
+  # @private
+  def assign_multiparameter_attributes(pairs)
+    fake_attributes = pairs.select { |(field, _)| self.class.metadata_fields.include? field[0, field.index('(')].to_sym }
 
-    def as_json(options={})
-      options ||= Hash.new # the JSON encoder can sometimes give us nil options?
-      options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
-      options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
-      super options
-    end
-    
-    def to_xml(options={})
-      options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
-      options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
-      super options
-    end
-
-    # @private
-    def assign_multiparameter_attributes(pairs)
-      fake_attributes = pairs.select { |(field, _)| self.class.metadata_fields.include? field[0, field.index('(')].to_sym }
-
-      fake_attributes.group_by { |(field, _)| field[0, field.index('(')] }.each do |field_name, parts|
-        options = self.class.metadata_fields[field_name.to_sym]
-        if options[:type] then
-          args = parts.each_with_object([]) do |(part_name, value), ary|
-            part_ann = part_name[part_name.index('(') + 1, part_name.length]
-            index = part_ann.to_i - 1
-            raise "Out-of-bounds multiparameter argument index" unless index >= 0
-            ary[index] = if value.blank? then nil
-              elsif part_ann.ends_with?('i)') then value.to_i
-              elsif part_ann.ends_with?('f)') then value.to_f
-              else value end
-          end
-          args.compact!
-          send :"#{field_name}=", options[:type].new(*args) unless args.empty?
-        else
-          raise "#{field_name} has no type and cannot be used for multiparameter assignment"
+    fake_attributes.group_by { |(field, _)| field[0, field.index('(')] }.each do |field_name, parts|
+      options = self.class.metadata_fields[field_name.to_sym]
+      if options[:type] then
+        args = parts.each_with_object([]) do |(part_name, value), ary|
+          part_ann = part_name[part_name.index('(') + 1, part_name.length]
+          index = part_ann.to_i - 1
+          raise "Out-of-bounds multiparameter argument index" unless index >= 0
+          ary[index] = if value.blank? then nil
+            elsif part_ann.ends_with?('i)') then value.to_i
+            elsif part_ann.ends_with?('f)') then value.to_f
+            else value end
         end
-      end
-
-      super(pairs - fake_attributes)
-    end
-
-    # @return [Metadata] An existing associated {Metadata} instance, or new,
-    #   saved one if none was found.
-
-    def metadata!
-      if instance_variables.include?(:@metadata) then
-        metadata.set_fields self.class.metadata_fields
+        args.compact!
+        send :"#{field_name}=", options[:type].new(*args) unless args.empty?
       else
-        (metadata || Metadata.transaction { metadata || create_metadata }).set_fields self.class.metadata_fields
+        raise "#{field_name} has no type and cannot be used for multiparameter assignment"
       end
     end
 
-    # @private
-    def inspect
-      "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
+    super(pairs - fake_attributes)
+  end
+
+  # @return [Metadata] An existing associated {Metadata} instance, or new,
+  #   saved one if none was found.
+
+  def metadata!
+    if instance_variables.include?(:@metadata) then
+      metadata.set_fields self.class.metadata_fields
+    else
+      (metadata || Metadata.transaction { metadata || create_metadata }).set_fields self.class.metadata_fields
     end
+  end
+
+  # @private
+  def inspect
+    "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
   end
 end

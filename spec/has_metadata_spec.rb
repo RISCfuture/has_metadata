@@ -8,7 +8,7 @@ module SpecSupport
   
   class HasMetadataTester < ActiveRecord::Base
     include HasMetadata
-    set_table_name 'users'
+    self.table_name = 'users'
     has_metadata({
       untyped: {},
       can_be_nil: { type: Date, allow_nil: true },
