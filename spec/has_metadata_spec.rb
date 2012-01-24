@@ -19,7 +19,8 @@ module SpecSupport
       number: { type: Fixnum, numericality: true },
       boolean: { type: Boolean },
       multiparam: { type: SpecSupport::ConstructorTester },
-      has_default: { default: 'default' }
+      has_default: { default: 'default' },
+      no_valid: { type: Fixnum, skip_type_validation: true }
     })
   end
   
@@ -120,6 +121,12 @@ describe HasMetadata do
         @object.multiparam = 'not correct'
         @object.should_not be_valid
         @object.errors[:multiparam].should_not be_empty
+      end
+      
+      it "should not enforce a type if :skip_type_validation is true" do
+        @object.number = 123
+        @object.no_valid = 'not correct'
+        @object.should be_valid
       end
       
       it "should cast a type if possible" do
@@ -266,7 +273,8 @@ describe HasMetadata do
           :number=>123,
           :boolean=>true,
           :multiparam=>nil,
-          :has_default=>"default"
+          :has_default=>"default",
+          :no_valid=>nil
         })
       end
       
@@ -281,7 +289,8 @@ describe HasMetadata do
           :number=>123,
           :boolean=>true,
           :multiparam=>nil,
-          :has_default=>"default"
+          :has_default=>"default",
+          :no_valid=>nil
         })
         
         @object.as_json(except: [ :untyped, :id ]).should eql("has_metadata_tester"=>{
@@ -293,7 +302,8 @@ describe HasMetadata do
           :number=>123,
           :boolean=>true,
           :multiparam=>nil,
-          :has_default=>"default"
+          :has_default=>"default",
+          :no_valid=>nil
         })
       end
       
@@ -315,6 +325,7 @@ describe HasMetadata do
           :boolean=>true,
           :multiparam=>nil,
           :has_default=>"default",
+          :no_valid=>nil,
           :foo=>1
         })
         
@@ -330,6 +341,7 @@ describe HasMetadata do
           :boolean=>true,
           :multiparam=>nil,
           :has_default=>"default",
+          :no_valid=>nil,
           :foo=>1,
           :bar=>'1'
         })
@@ -358,6 +370,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam nil="true"></multiparam>
   <has-default>default</has-default>
+  <no-valid nil="true"></no-valid>
 </has-metadata-tester>
         XML
       end
@@ -376,6 +389,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam nil="true"></multiparam>
   <has-default>default</has-default>
+  <no-valid nil="true"></no-valid>
 </has-metadata-tester>
         XML
         
@@ -391,6 +405,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam nil="true"></multiparam>
   <has-default>default</has-default>
+  <no-valid nil="true"></no-valid>
 </has-metadata-tester>
         XML
       end
@@ -416,6 +431,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam nil="true"></multiparam>
   <has-default>default</has-default>
+  <no-valid nil="true"></no-valid>
 </has-metadata-tester>
         XML
         
@@ -435,6 +451,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam nil="true"></multiparam>
   <has-default>default</has-default>
+  <no-valid nil="true"></no-valid>
 </has-metadata-tester>
         XML
       end
