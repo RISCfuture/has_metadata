@@ -84,6 +84,7 @@ module HasMetadata
         
         if options.kind_of?(Hash) then
           type = options.delete(:type)
+          type_validate = !options.delete(:skip_type_validation)
           options.delete :default
           
           validate do |obj|
@@ -91,7 +92,7 @@ module HasMetadata
             errors.add(name, :incorrect_type) unless
               HasMetadata.metadata_typecast(value, type).kind_of?(type) or
                 ((options[:allow_nil] and value.nil?) or (options[:allow_blank] and value.blank?))
-          end if type
+          end if type && type_validate
           validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
         end
       end
