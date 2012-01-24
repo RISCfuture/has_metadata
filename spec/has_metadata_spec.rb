@@ -256,7 +256,6 @@ describe HasMetadata do
       
       it "should include metadata fields" do
         @object.as_json.should eql("has_metadata_tester"=>{
-          "id"=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -272,7 +271,6 @@ describe HasMetadata do
       
       it "should not clobber an existing :except option" do
         @object.as_json(except: :untyped).should eql("has_metadata_tester"=>{
-          "id"=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
           :can_be_blank=>nil,
@@ -304,7 +302,6 @@ describe HasMetadata do
         end
         
         @object.as_json(methods: :foo).should eql("has_metadata_tester"=>{
-          "id"=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -319,7 +316,6 @@ describe HasMetadata do
         })
         
         @object.as_json(methods: [ :foo, :bar ]).should eql("has_metadata_tester"=>{
-          "id"=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -347,16 +343,15 @@ describe HasMetadata do
         @object.to_xml.should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"></id>
-  <untyped nil="true"></untyped>
-  <can-be-nil nil="true"></can-be-nil>
+  <untyped type="yaml" nil="true"></untyped>
+  <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
-  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank type="yaml" nil="true"></can-be-blank>
   <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
   <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
   <number type="integer">123</number>
   <boolean type="boolean">true</boolean>
-  <multiparam nil="true"></multiparam>
+  <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
 </has-metadata-tester>
         XML
@@ -366,15 +361,14 @@ describe HasMetadata do
         @object.to_xml(except: :untyped).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"></id>
-  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
-  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank type="yaml" nil="true"></can-be-blank>
   <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
   <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
   <number type="integer">123</number>
   <boolean type="boolean">true</boolean>
-  <multiparam nil="true"></multiparam>
+  <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
 </has-metadata-tester>
         XML
@@ -382,14 +376,14 @@ describe HasMetadata do
         @object.to_xml(except: [ :untyped, :id ]).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <can-be-nil nil="true"></can-be-nil>
+  <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
-  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank type="yaml" nil="true"></can-be-blank>
   <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
   <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
   <number type="integer">123</number>
   <boolean type="boolean">true</boolean>
-  <multiparam nil="true"></multiparam>
+  <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
 </has-metadata-tester>
         XML
@@ -404,17 +398,16 @@ describe HasMetadata do
         @object.to_xml(methods: :foo).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"></id>
   <foo type="integer">1</foo>
-  <untyped nil="true"></untyped>
-  <can-be-nil nil="true"></can-be-nil>
+  <untyped type="yaml" nil="true"></untyped>
+  <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
-  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank type="yaml" nil="true"></can-be-blank>
   <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
   <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
   <number type="integer">123</number>
   <boolean type="boolean">true</boolean>
-  <multiparam nil="true"></multiparam>
+  <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
 </has-metadata-tester>
         XML
@@ -422,18 +415,17 @@ describe HasMetadata do
         @object.to_xml(methods: [ :foo, :bar ]).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"></id>
   <foo type="integer">1</foo>
   <bar>1</bar>
-  <untyped nil="true"></untyped>
-  <can-be-nil nil="true"></can-be-nil>
+  <untyped type="yaml" nil="true"></untyped>
+  <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
-  <can-be-blank nil="true"></can-be-blank>
+  <can-be-blank type="yaml" nil="true"></can-be-blank>
   <can-be-blank-with-default type="date">#{Date.today.to_s}</can-be-blank-with-default>
   <cannot-be-nil-with-default type="boolean">false</cannot-be-nil-with-default>
   <number type="integer">123</number>
   <boolean type="boolean">true</boolean>
-  <multiparam nil="true"></multiparam>
+  <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
 </has-metadata-tester>
         XML
