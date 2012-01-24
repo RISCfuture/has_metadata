@@ -135,6 +135,12 @@ describe HasMetadata do
         @object.should be_valid
         @object.boolean.should eql(false)
       end
+      
+      it "should not try to convert integer types to octal" do
+        @object.number = "08"
+        @object.should be_valid
+        @object.number.should eql(8)
+      end
 
       it "should not enforce a type if :allow_nil is given" do
         @object.can_be_nil = nil

@@ -26,7 +26,7 @@ module HasMetadata
     if value.kind_of?(String) then
       if type == Integer or type == Fixnum then
         begin
-          return Integer(value)
+          return Integer(value.sub(/^0+/, '')) # so that it doesn't think it's in octal
         rescue ArgumentError
           return value
         end
