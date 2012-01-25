@@ -263,6 +263,7 @@ describe HasMetadata do
       
       it "should include metadata fields" do
         @object.as_json.should eql("has_metadata_tester"=>{
+          'login'=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -279,6 +280,7 @@ describe HasMetadata do
       
       it "should not clobber an existing :except option" do
         @object.as_json(except: :untyped).should eql("has_metadata_tester"=>{
+          'login'=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
           :can_be_blank=>nil,
@@ -292,6 +294,7 @@ describe HasMetadata do
         })
         
         @object.as_json(except: [ :untyped, :id ]).should eql("has_metadata_tester"=>{
+          'login'=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
           :can_be_blank=>nil,
@@ -312,6 +315,7 @@ describe HasMetadata do
         end
         
         @object.as_json(methods: :foo).should eql("has_metadata_tester"=>{
+          'login'=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -327,6 +331,7 @@ describe HasMetadata do
         })
         
         @object.as_json(methods: [ :foo, :bar ]).should eql("has_metadata_tester"=>{
+          'login'=>nil,
           :untyped=>nil,
           :can_be_nil=>nil,
           :can_be_nil_with_default=>Date.today,
@@ -355,6 +360,7 @@ describe HasMetadata do
         @object.to_xml.should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
+  <login nil="true"></login>
   <untyped type="yaml" nil="true"></untyped>
   <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
@@ -365,7 +371,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
-  <no-valid nil="true"></no-valid>
+  <no-valid type="yaml" nil="true"></no-valid>
 </has-metadata-tester>
         XML
       end
@@ -374,6 +380,7 @@ describe HasMetadata do
         @object.to_xml(except: :untyped).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
+  <login nil="true"></login>
   <can-be-nil type="yaml" nil="true"></can-be-nil>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
   <can-be-blank type="yaml" nil="true"></can-be-blank>
@@ -383,11 +390,11 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
-  <no-valid nil="true"></no-valid>
+  <no-valid type="yaml" nil="true"></no-valid>
 </has-metadata-tester>
         XML
         
-        @object.to_xml(except: [ :untyped, :id ]).should eql(<<-XML)
+        @object.to_xml(except: [ :untyped, :login ]).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <can-be-nil type="yaml" nil="true"></can-be-nil>
@@ -399,7 +406,7 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
-  <no-valid nil="true"></no-valid>
+  <no-valid type="yaml" nil="true"></no-valid>
 </has-metadata-tester>
         XML
       end
@@ -413,6 +420,7 @@ describe HasMetadata do
         @object.to_xml(methods: :foo).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
+  <login nil="true"></login>
   <foo type="integer">1</foo>
   <untyped type="yaml" nil="true"></untyped>
   <can-be-nil type="yaml" nil="true"></can-be-nil>
@@ -424,13 +432,14 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
-  <no-valid nil="true"></no-valid>
+  <no-valid type="yaml" nil="true"></no-valid>
 </has-metadata-tester>
         XML
         
         @object.to_xml(methods: [ :foo, :bar ]).should eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
+  <login nil="true"></login>
   <foo type="integer">1</foo>
   <bar>1</bar>
   <untyped type="yaml" nil="true"></untyped>
@@ -443,9 +452,32 @@ describe HasMetadata do
   <boolean type="boolean">true</boolean>
   <multiparam type="yaml" nil="true"></multiparam>
   <has-default>default</has-default>
-  <no-valid nil="true"></no-valid>
+  <no-valid type="yaml" nil="true"></no-valid>
 </has-metadata-tester>
         XML
+      end
+    end
+
+    context "[dirty]" do
+      before :each do
+        @object = SpecSupport::HasMetadataTester.create!(untyped: 'foo', number: 123, boolean: true, multiparam: SpecSupport::ConstructorTester.new(1,2,3))
+      end
+
+      it "should merge local changes with changed metadata" do
+        @object.login = 'me'
+        @object.untyped = 'baz'
+        @object.changes.should eql('login' => [ nil, 'me' ], 'untyped' => %w( foo baz ))
+      end
+
+      it "should clear changed metadata when saved" do
+        @object.login = 'me'
+        @object.untyped = 'baz'
+        @object.save!
+        @object.changes.should eql({})
+      end
+
+      it "should work when there is no associated metadata" do
+        SpecSupport::HasMetadataTester.new(login: 'hello').changes.should eql('login' => [ nil, 'hello' ])
       end
     end
   end

@@ -18,4 +18,31 @@ describe Metadata do
       Metadata.create!(data: { foo: false }).data.should eql(foo: false)
     end
   end
+
+  describe "#changed_metadata" do
+    before :each do
+      @metadata = Metadata.create!(data: { foo: 'bar', foo1: 'bar1' })
+      @metadata.set_fields({ foo: {}, foo1: {} })
+    end
+
+    it "should be empty at first" do
+      @metadata.changed_metadata.should eql({})
+    end
+
+    it "should include changed metadata fields" do
+      @metadata.foo = 'baz'
+      @metadata.changed_metadata.should eql('foo' => 'bar')
+    end
+
+    it "should not include ActiveRecord attributes" do
+      @metadata.data = { foo2: 'bar2' }
+      @metadata.changed_metadata.should eql({})
+    end
+
+    it "should clear when saved" do
+      @metadata.foo = 'baz'
+      @metadata.save!
+      @metadata.changed_metadata.should eql({})
+    end
+  end
 end
