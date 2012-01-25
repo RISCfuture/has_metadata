@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "has_metadata"
-  s.version = "1.6.0"
+  s.version = "1.6.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tim Morgan"]
-  s.date = "2012-01-24"
+  s.date = "2012-01-25"
   s.description = "has_metadata lets you move non-indexed and weighty columns off of your big tables by creating a separate metadata table to store all this extra information. Works with Ruby 1.9. and Rails 3.0."
   s.email = "git@timothymorgan.info"
   s.extra_rdoc_files = [
