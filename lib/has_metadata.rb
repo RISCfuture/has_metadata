@@ -73,6 +73,9 @@ module HasMetadata
 
         define_method(:save_metadata) { metadata.save! }
         define_method(:metadata_changed?) { metadata.try :changed? }
+
+        alias_method_chain :changed_attributes, :metadata
+        alias_method_chain :attribute_will_change!, :metadata
       else
         raise "Cannot redefine existing metadata fields: #{(fields.keys & self.metadata_fields.keys).to_sentence}" unless (fields.keys & self.metadata_fields.keys).empty?
         self.metadata_fields = self.metadata_fields.merge(fields)
@@ -156,5 +159,19 @@ module HasMetadata
   # @private
   def inspect
     "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
+  end
+
+  # @private
+  def changed_attributes_with_metadata
+    changed_attributes_without_metadata.merge(metadata.try(:changed_metadata) || {})
+  end
+
+  # @private
+  def attribute_will_change_with_metadata!(attr)
+    if attribute_names.include?(attr) then
+      attribute_will_change_without_metadata! attr
+    else
+      metadata!.send :attribute_will_change!, attr
+    end
   end
 end

@@ -56,10 +56,17 @@ module HasMetadata
 
         options = fields[name] || {}
         data_will_change!
+        attribute_will_change! name.to_s
         data[name] = HasMetadata.metadata_typecast(value, options[:type])
       end
 
       self
+    end
+
+    # @return [Hash<String, Object>] A hash of metadata fields that have been
+    #   altered.
+    def changed_metadata
+      changed_attributes.except(*attribute_names)
     end
 
     private
