@@ -145,7 +145,7 @@ module HasMetadata
   #   saved one if none was found.
 
   def metadata!
-    if instance_variables.include?(:@metadata) then
+    if instance_variables.include?(:@metadata) && metadata then
       metadata
     else
       if new_record? then
