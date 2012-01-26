@@ -78,7 +78,7 @@ module HasMetadata
 
         alias_method_chain :changed_attributes, :metadata
         alias_method_chain :attribute_will_change!, :metadata
-      else
+      elsif metadata_fields.slice(*fields.keys) != fields
         raise "Cannot redefine existing metadata fields: #{(fields.keys & self.metadata_fields.keys).to_sentence}" unless (fields.keys & self.metadata_fields.keys).empty?
         self.metadata_fields = self.metadata_fields.merge(fields)
       end
