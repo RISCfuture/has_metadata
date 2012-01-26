@@ -31,6 +31,13 @@ end
 
 describe HasMetadata do
   describe "#has_metadata" do
+    it "should not allow Rails-magic timestamp column names" do
+      -> { SpecSupport::HasMetadataTester.has_metadata(created_at: {}) }.should raise_error(/timestamp/)
+      -> { SpecSupport::HasMetadataTester.has_metadata(created_on: {}) }.should raise_error(/timestamp/)
+      -> { SpecSupport::HasMetadataTester.has_metadata(updated_at: {}) }.should raise_error(/timestamp/)
+      -> { SpecSupport::HasMetadataTester.has_metadata(updated_on: {}) }.should raise_error(/timestamp/)
+    end
+    
     it "should add a :metadata association" do
       SpecSupport::HasMetadataTester.reflect_on_association(:metadata).macro.should eql(:belongs_to)
     end

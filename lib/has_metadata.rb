@@ -63,6 +63,8 @@ module HasMetadata
     #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
 
     def has_metadata(fields)
+      raise "Can't define Rails-magic timestamped columns as metadata" if (fields.keys & [ :created_at, :created_on, :updated_at, :updated_on ]).any?
+      
       if !respond_to?(:metadata_fields) then
         belongs_to :metadata, dependent: :destroy
         accepts_nested_attributes_for :metadata
