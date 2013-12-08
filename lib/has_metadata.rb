@@ -20,7 +20,7 @@ end
 
 module HasMetadata
   extend ActiveSupport::Concern
-  
+
   # @private
   def self.metadata_typecast(value, type)
     if value.kind_of?(String) then
@@ -36,13 +36,15 @@ module HasMetadata
         rescue ArgumentError
           return value
         end
-      elsif type == Boolean then return value.parse_bool end
+      elsif type == Boolean then
+        return value.parse_bool
+      end
     end
     return value
   end
-  
+
   # Class methods that are added to your model.
-  
+
   module ClassMethods
 
     # Defines a set of fields whose values exist in the associated {Metadata}
@@ -63,8 +65,8 @@ module HasMetadata
     #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
 
     def has_metadata(fields)
-      raise "Can't define Rails-magic timestamped columns as metadata" if (fields.keys & [ :created_at, :created_on, :updated_at, :updated_on ]).any?
-      
+      raise "Can't define Rails-magic timestamped columns as metadata" if (fields.keys & [:created_at, :created_on, :updated_at, :updated_on]).any?
+
       if !respond_to?(:metadata_fields) then
         belongs_to :metadata, dependent: :destroy
         accepts_nested_attributes_for :metadata
@@ -86,33 +88,32 @@ module HasMetadata
       fields.each do |name, options|
         # delegate all attribute methods to the metadata
         attribute_method_matchers.each { |matcher| delegate matcher.method_name(name), to: :metadata! }
-        
+
         if options.kind_of?(Hash) then
-          type = options.delete(:type)
+          type          = options.delete(:type)
           type_validate = !options.delete(:skip_type_validation)
           options.delete :default
-          
+
           validate do |obj|
             value = obj.send(name)
-            errors.add(name, :incorrect_type) unless
-              HasMetadata.metadata_typecast(value, type).kind_of?(type) or
+            errors.add(name, :incorrect_type) unless HasMetadata.metadata_typecast(value, type).kind_of?(type) or
                 ((options[:allow_nil] and value.nil?) or (options[:allow_blank] and value.blank?))
           end if type && type_validate
-          validates(name, options) unless options.empty? or (options.keys - [ :allow_nil, :allow_blank ]).empty?
+          validates(name, options) unless options.empty? or (options.keys - [:allow_nil, :allow_blank]).empty?
         end
       end
     end
   end
 
   def as_json(options={})
-    options ||= Hash.new # the JSON encoder can sometimes give us nil options?
-    options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+    options           ||= Hash.new # the JSON encoder can sometimes give us nil options?
+    options[:except]  = Array.wrap(options[:except]) + [:metadata_id]
     options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
     super options
   end
-  
+
   def to_xml(options={})
-    options[:except] = Array.wrap(options[:except]) + [ :metadata_id ]
+    options[:except]  = Array.wrap(options[:except]) + [:metadata_id]
     options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
     super options
   end
@@ -126,12 +127,13 @@ module HasMetadata
       if options[:type] then
         args = parts.each_with_object([]) do |(part_name, value), ary|
           part_ann = part_name[part_name.index('(') + 1, part_name.length]
-          index = part_ann.to_i - 1
+          index    = part_ann.to_i - 1
           raise "Out-of-bounds multiparameter argument index" unless index >= 0
           ary[index] = if value.blank? then nil
-            elsif part_ann.ends_with?('i)') then value.to_i
-            elsif part_ann.ends_with?('f)') then value.to_f
-            else value end
+                       elsif part_ann.ends_with?('i)') then value.to_i
+                       elsif part_ann.ends_with?('f)') then value.to_f
+                       else value
+                       end
         end
         args.compact!
         send :"#{field_name}=", options[:type].new(*args) unless args.empty?
@@ -160,7 +162,7 @@ module HasMetadata
 
   # @private
   def inspect
-    "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k,v| "#{k}: #{v.inspect}" }.join(', ')}>"
+    "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k, v| "#{k}: #{v.inspect}" }.join(', ')}>"
   end
 
   # @private

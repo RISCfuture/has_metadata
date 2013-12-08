@@ -9,8 +9,8 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'has_metadata'
 
 ActiveRecord::Base.establish_connection(
-  adapter: 'sqlite3',
-  database: 'test.sqlite'
+    adapter:  'sqlite3',
+    database: 'test.sqlite'
 )
 require "#{File.dirname __FILE__}/../templates/metadata"
 
