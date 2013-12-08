@@ -1,7 +1,7 @@
 module HasMetadata
 
   # Base class of the {Metadata} model. Functionality is moved to this class to
-  # make changes to the model easier. See the @Metadata@ method for more
+  # make changes to the model easier. See the `Metadata` method for more
   # information.
 
   class Model < ActiveRecord::Base

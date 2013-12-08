@@ -6,7 +6,7 @@ gem 'boolean'
 group :development do
   gem 'jeweler'
   gem 'yard'
-  gem 'RedCloth', require: 'redcloth'
+  gem 'redcarpet', require: nil
   gem 'sqlite3'
   gem 'rspec'
 end

@@ -16,7 +16,8 @@ class Object
 end
 
 
-# Provides the {ClassMethods#has_metadata} method to subclasses of @ActiveRecord::Base@.
+# Provides the {ClassMethods#has_metadata} method to subclasses of
+# `ActiveRecord::Base`.
 
 module HasMetadata
   extend ActiveSupport::Concern
@@ -48,18 +49,18 @@ module HasMetadata
   module ClassMethods
 
     # Defines a set of fields whose values exist in the associated {Metadata}
-    # record. Each key in the @fields@ hash is the name of a metadata field, and
-    # the value is a set of options to pass to the @validates@ method. If you do
-    # not want to perform any validation on a field, simply pass @true@ as its
+    # record. Each key in the `fields` hash is the name of a metadata field, and
+    # the value is a set of options to pass to the `validates` method. If you do
+    # not want to perform any validation on a field, simply pass `true` as its
     # key value.
     #
-    # In addition to the normal @validates@ keys, you can also include a @:type@
-    # key to restrict values to certain classes, or a @:default@ key to specify
+    # In addition to the normal `validates` keys, you can also include a `:type`
+    # key to restrict values to certain classes, or a `:default` key to specify
     # a value to return for the getter should none be set (normal default is
-    # @nil@).
+    # `nil`).
     #
     # @param [Hash<Symbol, Hash>] fields A mapping of field names to their
-    #   validation options (and/or the @:type@ key).
+    #   validation options (and/or the `:type` key).
     #
     # @example Three metadata fields, one basic, one validated, and one type-checked.
     #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
@@ -105,6 +106,7 @@ module HasMetadata
     end
   end
 
+  # @private
   def as_json(options={})
     options           ||= Hash.new # the JSON encoder can sometimes give us nil options?
     options[:except]  = Array.wrap(options[:except]) + [:metadata_id]
@@ -112,6 +114,7 @@ module HasMetadata
     super options
   end
 
+  # @private
   def to_xml(options={})
     options[:except]  = Array.wrap(options[:except]) + [:metadata_id]
     options[:methods] = Array.wrap(options[:methods]) + metadata_fields.keys - options[:except].map(&:to_sym)
