@@ -32,42 +32,42 @@ end
 describe HasMetadata do
   describe "#has_metadata" do
     it "should not allow Rails-magic timestamp column names" do
-      -> { SpecSupport::HasMetadataTester.has_metadata(created_at: {}) }.should raise_error(/timestamp/)
-      -> { SpecSupport::HasMetadataTester.has_metadata(created_on: {}) }.should raise_error(/timestamp/)
-      -> { SpecSupport::HasMetadataTester.has_metadata(updated_at: {}) }.should raise_error(/timestamp/)
-      -> { SpecSupport::HasMetadataTester.has_metadata(updated_on: {}) }.should raise_error(/timestamp/)
+      expect { SpecSupport::HasMetadataTester.has_metadata(created_at: {}) }.to raise_error(/timestamp/)
+      expect { SpecSupport::HasMetadataTester.has_metadata(created_on: {}) }.to raise_error(/timestamp/)
+      expect { SpecSupport::HasMetadataTester.has_metadata(updated_at: {}) }.to raise_error(/timestamp/)
+      expect { SpecSupport::HasMetadataTester.has_metadata(updated_on: {}) }.to raise_error(/timestamp/)
     end
 
     it "should add a :metadata association" do
-      SpecSupport::HasMetadataTester.reflect_on_association(:metadata).macro.should eql(:belongs_to)
+      expect(SpecSupport::HasMetadataTester.reflect_on_association(:metadata).macro).to eql(:belongs_to)
     end
 
     it "should set the model to accept nested attributes for :metadata" do
-      SpecSupport::HasMetadataTester.nested_attributes_options[:metadata].should_not be_nil
+      expect(SpecSupport::HasMetadataTester.nested_attributes_options[:metadata]).not_to be_nil
     end
 
     it "should define methods for each field" do
       [:attribute, :attribute_before_type_cast, :attribute=].each do |meth|
-        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'untyped'))
-        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'multiparam'))
-        SpecSupport::HasMetadataTester.new.should respond_to(meth.to_s.sub('attribute', 'number'))
+        expect(SpecSupport::HasMetadataTester.new).to respond_to(meth.to_s.sub('attribute', 'untyped'))
+        expect(SpecSupport::HasMetadataTester.new).to respond_to(meth.to_s.sub('attribute', 'multiparam'))
+        expect(SpecSupport::HasMetadataTester.new).to respond_to(meth.to_s.sub('attribute', 'number'))
       end
     end
 
     it "should properly handle subclasses" do
-      SpecSupport::HasMetadataTester.metadata_fields.should_not include(:inherited)
-      SpecSupport::HasMetadataSubclass.metadata_fields.should include(:inherited)
+      expect(SpecSupport::HasMetadataTester.metadata_fields).not_to include(:inherited)
+      expect(SpecSupport::HasMetadataSubclass.metadata_fields).to include(:inherited)
 
-      -> { SpecSupport::HasMetadataTester.new.inherited = true }.should raise_error(NoMethodError)
+      expect { SpecSupport::HasMetadataTester.new.inherited = true }.to raise_error(NoMethodError)
       sc           = SpecSupport::HasMetadataSubclass.new
       sc.inherited = true
-      sc.inherited.should be_true
+      expect(sc.inherited).to be_true
       sc.untyped = 'foo'
-      sc.untyped.should eql('foo')
+      expect(sc.untyped).to eql('foo')
     end
 
     it "should not allow subclasses to redefine metadata fields" do
-      -> { SpecSupport::HasMetadataSubclass.has_metadata(untyped: { presence: true }) }.should raise_error(/untyped/)
+      expect { SpecSupport::HasMetadataSubclass.has_metadata(untyped: { presence: true }) }.to raise_error(/untyped/)
     end
 
     [:attribute, :attribute_before_type_cast].each do |getter|
@@ -79,24 +79,24 @@ describe HasMetadata do
 
         it "should return a field in the metadata object" do
           @metadata.data[:untyped] = 'bar'
-          @object.send(getter.to_s.sub('attribute', 'untyped')).should eql('bar')
+          expect(@object.send(getter.to_s.sub('attribute', 'untyped'))).to eql('bar')
         end
 
         it "should return nil if there is no associated metadata" do
-          @object.stub(:metadata).and_return(nil)
+          allow(@object).to receive(:metadata).and_return(nil)
           ivars = @object.instance_variables - [:@metadata]
-          @object.stub(:instance_variables).and_return(ivars)
+          allow(@object).to receive(:instance_variables).and_return(ivars)
 
-          @object.send(getter.to_s.sub('attribute', 'untyped')).should be_nil
+          expect(@object.send(getter.to_s.sub('attribute', 'untyped'))).to be_nil
         end
 
         it "should return a default if one is specified" do
-          @object.send(getter.to_s.sub('attribute', 'has_default')).should eql('default')
+          expect(@object.send(getter.to_s.sub('attribute', 'has_default'))).to eql('default')
         end
 
         it "should return nil if nil is stored and the default is not nil" do
           @metadata.data[:has_default] = nil
-          @object.send(getter.to_s.sub('attribute', 'has_default')).should eql(nil)
+          expect(@object.send(getter.to_s.sub('attribute', 'has_default'))).to eql(nil)
         end
       end
     end
@@ -111,96 +111,96 @@ describe HasMetadata do
 
       it "should set the value in the metadata object" do
         @object.untyped = 'foo'
-        @metadata.data[:untyped].should eql('foo')
+        expect(@metadata.data[:untyped]).to eql('foo')
       end
 
       it "should create the metadata object if it doesn't exist" do
-        @object.stub(:metadata).and_return(nil)
+        allow(@object).to receive(:metadata).and_return(nil)
         ivars = @object.instance_variables - [:@metadata]
-        @object.stub(:instance_variables).and_return(ivars)
-        Metadata.should_receive(:new).once.and_return(@metadata)
+        allow(@object).to receive(:instance_variables).and_return(ivars)
+        expect(Metadata).to receive(:new).once.and_return(@metadata)
 
         @object.untyped = 'foo'
-        @metadata.data[:untyped].should eql('foo')
+        expect(@metadata.data[:untyped]).to eql('foo')
       end
 
       it "should enforce a type if given" do
         @object.multiparam = 'not correct'
-        @object.should_not be_valid
-        @object.errors[:multiparam].should_not be_empty
+        expect(@object).not_to be_valid
+        expect(@object.errors[:multiparam]).not_to be_empty
       end
 
       it "should not enforce a type if :skip_type_validation is true" do
         @object.number   = 123
         @object.no_valid = 'not correct'
-        @object.should be_valid
+        expect(@object).to be_valid
       end
 
       it "should cast a type if possible" do
         @object.number = "50"
-        @object.should be_valid
-        @object.number.should eql(50)
+        expect(@object).to be_valid
+        expect(@object.number).to eql(50)
 
         @object.boolean = "1"
-        @object.should be_valid
-        @object.boolean.should eql(true)
+        expect(@object).to be_valid
+        expect(@object.boolean).to eql(true)
 
         @object.boolean = "0"
-        @object.should be_valid
-        @object.boolean.should eql(false)
+        expect(@object).to be_valid
+        expect(@object.boolean).to eql(false)
       end
 
       it "should not try to convert integer types to octal" do
         @object.number = "08"
-        @object.should be_valid
-        @object.number.should eql(8)
+        expect(@object).to be_valid
+        expect(@object.number).to eql(8)
       end
 
       it "should not enforce a type if :allow_nil is given" do
         @object.can_be_nil = nil
         @object.valid? #@object.should be_valid
-        @object.errors[:can_be_nil].should be_empty
+        expect(@object.errors[:can_be_nil]).to be_empty
       end
 
       it "should not enforce a type if :allow_blank is given" do
         @object.can_be_blank = ""
         @object.valid? #@object.should be_valid
-        @object.errors[:can_be_blank].should be_empty
+        expect(@object.errors[:can_be_blank]).to be_empty
       end
 
       it "should set to the default if given nil and allow_blank or allow_nil are false" do
         @object.can_be_nil_with_default = nil
-        @object.can_be_nil_with_default.should be_nil
+        expect(@object.can_be_nil_with_default).to be_nil
 
         @object.can_be_blank_with_default = nil
-        @object.can_be_blank_with_default.should be_nil
+        expect(@object.can_be_blank_with_default).to be_nil
 
-        @object.cannot_be_nil_with_default.should eql(false)
+        expect(@object.cannot_be_nil_with_default).to eql(false)
 
         @object.cannot_be_nil_with_default = nil
-        @object.should_not be_valid
-        @object.errors[:cannot_be_nil_with_default].should_not be_empty
+        expect(@object).not_to be_valid
+        expect(@object.errors[:cannot_be_nil_with_default]).not_to be_empty
       end
 
       it "should enforce other validations as given" do
         @object.number = 'not number'
-        @object.should_not be_valid
-        @object.errors[:number].should_not be_empty
+        expect(@object).not_to be_valid
+        expect(@object.errors[:number]).not_to be_empty
       end
 
       it "should mass-assign a multiparameter attribute" do
         @object.attributes = { 'multiparam(1)' => 'foo', 'multiparam(2)' => '1' }
-        @object.multiparam.args.should eql(['foo', '1'])
+        expect(@object.multiparam.args).to eql(['foo', '1'])
       end
 
       it "should compact blank multiparameter parts" do
         @object.attributes = { 'multiparam(1)' => '', 'multiparam(2)' => 'foo' }
-        @object.multiparam.args.should eql(['foo'])
+        expect(@object.multiparam.args).to eql(['foo'])
       end
 
       it "should typecast multiparameter parts" do
         @object.attributes = { 'multiparam(1i)' => '1982', 'multiparam(2f)' => '10.5' }
-        @object.multiparam.args.should eql([1982, 10.5])
+        expect(@object.multiparam.args).to eql([1982, 10.5])
       end
     end
 
@@ -213,39 +213,39 @@ describe HasMetadata do
       context "untyped field" do
         it "should return true if the string is not blank" do
           @metadata.data = { untyped: 'foo' }
-          @object.untyped?.should be_true
+          expect(@object.untyped?).to be_true
         end
 
         it "should return false if the string is blank" do
           @metadata.data = { untyped: ' ' }
-          @object.untyped?.should be_false
+          expect(@object.untyped?).to be_false
 
           @metadata.data = { untyped: '' }
-          @object.untyped?.should be_false
+          expect(@object.untyped?).to be_false
         end
       end
 
       context "numeric field" do
         it "should return true if the number is not zero" do
           @metadata.data = { number: 4 }
-          @object.number?.should be_true
+          expect(@object.number?).to be_true
         end
 
         it "should return false if the number is zero" do
           @metadata.data = { number: 0 }
-          @object.number?.should be_false
+          expect(@object.number?).to be_false
         end
       end
 
       context "typed, non-numeric field" do
         it "should return true if the string is not blank" do
           @metadata.data = { can_be_nil: Date.today }
-          @object.can_be_nil?.should be_true
+          expect(@object.can_be_nil?).to be_true
         end
 
         it "should return false if the string is blank" do
           @metadata.data = { can_be_nil: nil }
-          @object.can_be_nil?.should be_false
+          expect(@object.can_be_nil?).to be_false
         end
       end
     end
@@ -256,7 +256,7 @@ describe HasMetadata do
         object.number     = 123
         object.boolean    = true
         object.multiparam = SpecSupport::ConstructorTester.new(1, 2, 3)
-        object.metadata.should_receive(:save).once.and_return(true)
+        expect(object.metadata).to receive(:save).once.and_return(true)
         object.save!
       end
     end
@@ -269,7 +269,7 @@ describe HasMetadata do
       end
 
       it "should include metadata fields" do
-        @object.as_json.should eql(
+        expect(@object.as_json).to eql(
             'id'                         => nil,
             'login'                      => nil,
             'untyped'                    => nil,
@@ -287,7 +287,7 @@ describe HasMetadata do
       end
 
       it "should not clobber an existing :except option" do
-        @object.as_json(except: :untyped).should eql(
+        expect(@object.as_json(except: :untyped)).to eql(
             'id'                         => nil,
             'login'                      => nil,
             'can_be_nil'                 => nil,
@@ -302,7 +302,7 @@ describe HasMetadata do
             'no_valid'                   => nil
         )
 
-        @object.as_json(except: [:untyped, :id]).should eql(
+        expect(@object.as_json(except: [:untyped, :id])).to eql(
             'login'                      => nil,
             'can_be_nil'                 => nil,
             'can_be_nil_with_default'    => Date.today,
@@ -322,7 +322,7 @@ describe HasMetadata do
           def foo() 1 end
           def bar() '1' end end
 
-        @object.as_json(methods: :foo).should eql(
+        expect(@object.as_json(methods: :foo)).to eql(
             'id'                         => nil,
             'login'                      => nil,
             'untyped'                    => nil,
@@ -339,7 +339,7 @@ describe HasMetadata do
             'foo'                        => 1
         )
 
-        @object.as_json(methods: [:foo, :bar]).should eql(
+        expect(@object.as_json(methods: [:foo, :bar])).to eql(
             'id'                         => nil,
             'login'                      => nil,
             'untyped'                    => nil,
@@ -367,7 +367,7 @@ describe HasMetadata do
       end
 
       it "should include metadata fields" do
-        @object.to_xml.should eql(<<-XML)
+        expect(@object.to_xml).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <id type="integer" nil="true"/>
@@ -388,7 +388,7 @@ describe HasMetadata do
       end
 
       it "should not clobber an existing :except option" do
-        @object.to_xml(except: :untyped).should eql(<<-XML)
+        expect(@object.to_xml(except: :untyped)).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <id type="integer" nil="true"/>
@@ -406,7 +406,7 @@ describe HasMetadata do
 </has-metadata-tester>
         XML
 
-        @object.to_xml(except: [:untyped, :id]).should eql(<<-XML)
+        expect(@object.to_xml(except: [:untyped, :id])).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <login nil="true"/>
@@ -430,7 +430,7 @@ describe HasMetadata do
           def bar() '1' end
         end
 
-        @object.to_xml(methods: :foo).should eql(<<-XML)
+        expect(@object.to_xml(methods: :foo)).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <id type="integer" nil="true"/>
@@ -450,7 +450,7 @@ describe HasMetadata do
 </has-metadata-tester>
         XML
 
-        @object.to_xml(methods: [:foo, :bar]).should eql(<<-XML)
+        expect(@object.to_xml(methods: [:foo, :bar])).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
   <id type="integer" nil="true"/>
@@ -481,18 +481,18 @@ describe HasMetadata do
       it "should merge local changes with changed metadata" do
         @object.login   = 'me'
         @object.untyped = 'baz'
-        @object.changes.should eql('login' => [nil, 'me'], 'untyped' => %w( foo baz ))
+        expect(@object.changes).to eql('login' => [nil, 'me'], 'untyped' => %w( foo baz ))
       end
 
       it "should clear changed metadata when saved" do
         @object.login   = 'me'
         @object.untyped = 'baz'
         @object.save!
-        @object.changes.should eql({})
+        expect(@object.changes).to eql({})
       end
 
       it "should work when there is no associated metadata" do
-        SpecSupport::HasMetadataTester.new(login: 'hello').changes.should eql('login' => [nil, 'hello'])
+        expect(SpecSupport::HasMetadataTester.new(login: 'hello').changes).to eql('login' => [nil, 'hello'])
       end
     end
   end
