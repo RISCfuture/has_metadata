@@ -170,7 +170,9 @@ module HasMetadata
 
   # @private
   def changed_attributes_with_metadata
-    changed_attributes_without_metadata.merge(metadata.try(:changed_metadata) || {})
+    changed_metadata = metadata.try(:changed_metadata) || {}
+
+    changed_attributes_without_metadata.merge!(changed_metadata)
   end
 
   # @private
