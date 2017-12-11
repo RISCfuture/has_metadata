@@ -7,8 +7,11 @@ module SpecSupport
   end
 
   class HasMetadataTester < ActiveRecord::Base
-    include HasMetadata
+    include ActiveModel::Serializers::Xml
+
     self.table_name = 'users'
+
+    include HasMetadata
     has_metadata({
                      untyped:                    {},
                      can_be_nil:                 { type: Date, allow_nil: true },
@@ -16,11 +19,11 @@ module SpecSupport
                      can_be_blank:               { type: Date, allow_blank: true },
                      can_be_blank_with_default:  { type: Date, allow_blank: true, default: Date.today },
                      cannot_be_nil_with_default: { type: Boolean, allow_nil: false, default: false },
-                     number:                     { type: Fixnum, numericality: true },
+                     number:                     { type: Integer, numericality: true },
                      boolean:                    { type: Boolean },
                      multiparam:                 { type: SpecSupport::ConstructorTester },
                      has_default:                { default: 'default' },
-                     no_valid:                   { type: Fixnum, skip_type_validation: true }
+                     no_valid:                   { type: Integer, skip_type_validation: true }
                  })
   end
 
@@ -29,7 +32,7 @@ module SpecSupport
   end
 end
 
-describe HasMetadata do
+RSpec.describe HasMetadata do
   describe "#has_metadata" do
     it "should not allow Rails-magic timestamp column names" do
       expect { SpecSupport::HasMetadataTester.has_metadata(created_at: {}) }.to raise_error(/timestamp/)
@@ -61,7 +64,7 @@ describe HasMetadata do
       expect { SpecSupport::HasMetadataTester.new.inherited = true }.to raise_error(NoMethodError)
       sc           = SpecSupport::HasMetadataSubclass.new
       sc.inherited = true
-      expect(sc.inherited).to be_true
+      expect(sc.inherited).to eql(true)
       sc.untyped = 'foo'
       expect(sc.untyped).to eql('foo')
     end
@@ -213,39 +216,39 @@ describe HasMetadata do
       context "untyped field" do
         it "should return true if the string is not blank" do
           @metadata.data = { untyped: 'foo' }
-          expect(@object.untyped?).to be_true
+          expect(@object.untyped?).to eql(true)
         end
 
         it "should return false if the string is blank" do
           @metadata.data = { untyped: ' ' }
-          expect(@object.untyped?).to be_false
+          expect(@object.untyped?).to eql(false)
 
           @metadata.data = { untyped: '' }
-          expect(@object.untyped?).to be_false
+          expect(@object.untyped?).to eql(false)
         end
       end
 
       context "numeric field" do
         it "should return true if the number is not zero" do
           @metadata.data = { number: 4 }
-          expect(@object.number?).to be_true
+          expect(@object.number?).to eql(true)
         end
 
         it "should return false if the number is zero" do
           @metadata.data = { number: 0 }
-          expect(@object.number?).to be_false
+          expect(@object.number?).to eql(false)
         end
       end
 
       context "typed, non-numeric field" do
         it "should return true if the string is not blank" do
           @metadata.data = { can_be_nil: Date.today }
-          expect(@object.can_be_nil?).to be_true
+          expect(@object.can_be_nil?).to eql(true)
         end
 
         it "should return false if the string is blank" do
           @metadata.data = { can_be_nil: nil }
-          expect(@object.can_be_nil?).to be_false
+          expect(@object.can_be_nil?).to eql(false)
         end
       end
     end
@@ -370,7 +373,7 @@ describe HasMetadata do
         expect(@object.to_xml).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"/>
+  <id nil="true"/>
   <login nil="true"/>
   <untyped nil="true"/>
   <can-be-nil nil="true"/>
@@ -391,7 +394,7 @@ describe HasMetadata do
         expect(@object.to_xml(except: :untyped)).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"/>
+  <id nil="true"/>
   <login nil="true"/>
   <can-be-nil nil="true"/>
   <can-be-nil-with-default type="date">#{Date.today.to_s}</can-be-nil-with-default>
@@ -433,7 +436,7 @@ describe HasMetadata do
         expect(@object.to_xml(methods: :foo)).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"/>
+  <id nil="true"/>
   <login nil="true"/>
   <foo type="integer">1</foo>
   <untyped nil="true"/>
@@ -453,7 +456,7 @@ describe HasMetadata do
         expect(@object.to_xml(methods: [:foo, :bar])).to eql(<<-XML)
 <?xml version="1.0" encoding="UTF-8"?>
 <has-metadata-tester>
-  <id type="integer" nil="true"/>
+  <id nil="true"/>
   <login nil="true"/>
   <foo type="integer">1</foo>
   <bar>1</bar>

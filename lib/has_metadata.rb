@@ -25,7 +25,7 @@ module HasMetadata
   # @private
   def self.metadata_typecast(value, type)
     if value.kind_of?(String) then
-      if type == Integer or type == Fixnum then
+      if type == Integer or type == Integer then
         begin
           return Integer(value.sub(/^0+/, '')) # so that it doesn't think it's in octal
         rescue ArgumentError
@@ -63,7 +63,7 @@ module HasMetadata
     #   validation options (and/or the `:type` key).
     #
     # @example Three metadata fields, one basic, one validated, and one type-checked.
-    #   has_metadata(optional: true, required: { presence: true }, number: { type: Fixnum })
+    #   has_metadata(optional: true, required: { presence: true }, number: { type: Integer })
 
     def has_metadata(fields)
       raise "Can't define Rails-magic timestamped columns as metadata" if (fields.keys & [:created_at, :created_on, :updated_at, :updated_on]).any?
@@ -79,8 +79,7 @@ module HasMetadata
         define_method(:save_metadata) { metadata.save! }
         define_method(:metadata_changed?) { metadata.try :changed? }
 
-        alias_method_chain :changed_attributes, :metadata
-        alias_method_chain :attribute_will_change!, :metadata
+        prepend WithMetadata
       elsif metadata_fields.slice(*fields.keys) != fields
         raise "Cannot redefine existing metadata fields: #{(fields.keys & self.metadata_fields.keys).to_sentence}" unless (fields.keys & self.metadata_fields.keys).empty?
         self.metadata_fields = self.metadata_fields.merge(fields)
@@ -124,6 +123,7 @@ module HasMetadata
   # @private
   def assign_multiparameter_attributes(pairs)
     fake_attributes = pairs.select { |(field, _)| self.class.metadata_fields.include? field[0, field.index('(')].to_sym }
+    result = super(pairs.except(fake_attributes.keys))
 
     fake_attributes.group_by { |(field, _)| field[0, field.index('(')] }.each do |field_name, parts|
       options = self.class.metadata_fields[field_name.to_sym]
@@ -145,7 +145,7 @@ module HasMetadata
       end
     end
 
-    super(pairs - fake_attributes)
+    return result
   end
 
   # @return [Metadata] An existing associated {Metadata} instance, or new,
@@ -168,17 +168,24 @@ module HasMetadata
     "#<#{self.class.to_s} #{attributes.merge(metadata.try(:data).try(:stringify_keys) || {}).map { |k, v| "#{k}: #{v.inspect}" }.join(', ')}>"
   end
 
-  # @private
-  def changed_attributes_with_metadata
-    changed_attributes_without_metadata.merge(metadata.try(:changed_metadata) || {})
-  end
+  module WithMetadata
+    # @private
+    def changed_attributes
+      super.merge(metadata.try(:changed_metadata) || {})
+    end
 
-  # @private
-  def attribute_will_change_with_metadata!(attr)
-    if attribute_names.include?(attr) then
-      attribute_will_change_without_metadata! attr
-    else
-      metadata!.send :attribute_will_change!, attr
+    # @private
+    def attributes_changed_by_setter
+      super.merge(metadata.try(:changed_metadata) || {})
+    end
+
+    # @private
+    def attribute_will_change!(attr)
+      if attribute_names.include?(attr) then
+        super attr
+      else
+        metadata!.send :attribute_will_change!, attr
+      end
     end
   end
 end

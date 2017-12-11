@@ -1,3 +1,5 @@
+require 'active_record'
+
 module HasMetadata
 
   # Base class of the {Metadata} model. Functionality is moved to this class to
@@ -15,7 +17,7 @@ module HasMetadata
     def set_fields(fields)
       return self if @_fields_set
       @_fields_set = true
-
+      
       singleton_class.send(:define_method, :attribute_method?) do |name|
         name = name.to_sym
         super(name) or fields.include?(name)
