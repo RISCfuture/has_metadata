@@ -1,3 +1,7 @@
+> ⚠️ **DEPRECATED:** `has_metadata` is no longer maintained. Superseded by
+> [`has_metadata_column`](https://github.com/RISCfuture/has_metadata_column)
+> (also deprecated). No active maintenance. The final release is v1.6.2.
+
 has_metadata
 ============
 
